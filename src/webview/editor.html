@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="#{webixCss}" />
+    <link rel="stylesheet" href="#{monacoCss}" />
+    <link rel="stylesheet" href="#{mdiCss}" />
+    <link rel="stylesheet" href="#{stylesCss}" />
+    <!-- Load scripts with error handling -->
+    <script>
+      function loadScript(src, callback) {
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = false;
+        script.onload = callback;
+        script.onerror = function () {
+          document.getElementById("debug").textContent +=
+            "\nFailed to load: " + src;
+        };
+        document.head.appendChild(script);
+      }
+
+      // Load scripts in sequence
+      window.addEventListener("load", function () {
+        const debug = document.getElementById("debug");
+        debug.textContent = "Starting script load...";
+
+        // Load Webix first
+        loadScript("#{webixJs}", function () {
+          debug.textContent += "\nWebix script loaded";
+          // Then load Monaco
+          loadScript("#{monacoLoader}", function () {
+            debug.textContent += "\nMonaco loader script loaded";
+            // Initialize our editor
+            loadScript("#{editorJs}", function () {
+              debug.textContent += "\nEditor script loaded";
+              // Start initialization after all scripts are loaded
+              if (
+                typeof webix !== "undefined" &&
+                typeof require !== "undefined"
+              ) {
+                debug.textContent +=
+                  "\nAll dependencies loaded, starting initialization";
+                init();
+              } else {
+                debug.textContent += "\nDependencies not ready:";
+                debug.textContent +=
+                  "\nWebix: " +
+                  (typeof webix !== "undefined" ? "loaded" : "not loaded");
+                debug.textContent +=
+                  "\nMonaco: " +
+                  (typeof require !== "undefined" ? "loaded" : "not loaded");
+              }
+            });
+          });
+        });
+      });
+    </script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div
+      id="debug"
+      style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px;
+        z-index: 9999;
+      "
+    ></div>
+    <div
+      id="debugToggle"
+      style="
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+        padding: 5px 10px;
+        cursor: pointer;
+        z-index: 10000;
+      "
+      onclick="toggleDebug()"
+    >
+      Toggle Debug
+    </div>
+    <div id="app"></div>
+    <script>
+      const debug = document.getElementById("debug");
+      debug.textContent = "Loading...";
+
+      // Monitor for script load errors and CSS load errors
+      window.addEventListener(
+        "error",
+        function (e) {
+          if (e.target) {
+            if (e.target.tagName === "SCRIPT") {
+              debug.textContent += "\nScript load error: " + e.target.src;
+            } else if (e.target.tagName === "LINK") {
+              debug.textContent += "\nCSS load error: " + e.target.href;
+            }
+          }
+        },
+        true
+      );
+
+      window.onerror = function (msg, url, line) {
+        debug.textContent += "\nError: " + msg + " at " + url + ":" + line;
+        return false;
+      };
+    </script>
+    <script
+      src="#{editorJs}"
+      onerror="document.getElementById('debug').textContent += '\nFailed to load editor.js';"
+    ></script>
+  </body>
+</html>

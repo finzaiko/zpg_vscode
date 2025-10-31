@@ -1,0 +1,114 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+}
+
+#app {
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.monaco-editor-container .monaco-editor {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.monaco-editor-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#editorContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Override Webix theme colors */
+.webix_view {
+  background-color: var(--vscode-editor-background) !important;
+  color: var(--vscode-editor-foreground) !important;
+}
+
+.webix_toolbar {
+  background-color: var(--vscode-editor-background) !important;
+  border-color: var(--vscode-panel-border) !important;
+}
+
+.webix_el_button button {
+  background-color: var(--vscode-button-background) !important;
+  color: var(--vscode-button-foreground) !important;
+  border: none !important;
+}
+
+.webix_el_button button:hover {
+  background-color: var(--vscode-button-hoverBackground) !important;
+}
+
+.webix_el_combo input,
+.webix_el_text input,
+.webix_el_textarea textarea {
+  background-color: var(--vscode-input-background) !important;
+  color: var(--vscode-input-foreground) !important;
+  border-color: var(--vscode-input-border) !important;
+}
+
+.webix_list_item {
+  background-color: var(--vscode-dropdown-background) !important;
+  color: var(--vscode-dropdown-foreground) !important;
+}
+
+.webix_list_item.webix_selected {
+  background-color: var(--vscode-list-activeSelectionBackground) !important;
+  color: var(--vscode-list-activeSelectionForeground) !important;
+}
+
+.webix_datatable {
+  background-color: var(--vscode-editor-background) !important;
+  color: var(--vscode-editor-foreground) !important;
+}
+
+.webix_hcell {
+  background-color: var(--vscode-editorGroupHeader-tabsBackground) !important;
+  color: var(--vscode-tab-activeForeground) !important;
+  border-color: var(--vscode-panel-border) !important;
+  padding: 4px 8px !important;
+  font-weight: 600 !important;
+}
+
+.webix_cell {
+  background-color: var(--vscode-editor-background) !important;
+  color: var(--vscode-editor-foreground) !important;
+  border-color: var(--vscode-panel-border) !important;
+}
+
+.result-datatable .webix_dd_drag_column,
+.result-datatable .webix_hcolumn,
+.result-datatable .webix_hs_center,
+.result-datatable .webix_hs_left,
+.result-datatable .webix_hs_right,
+.result-datatable .webix_ss_header,
+.result-datatable .webix_ss_vscroll_header {
+  background: var(--vscode-editor-background);
+  color: #313131;
+  font-family: Roboto, sans-serif;
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: 0;
+}
