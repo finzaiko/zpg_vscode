@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="#{monacoCss}" />
     <link rel="stylesheet" href="#{mdiCss}" />
     <link rel="stylesheet" href="#{stylesCss}" />
+    <!-- Initialize VS Code API and global variables -->
+    <script>
+      // Initialize VS Code API once
+      const vscode = acquireVsCodeApi();
+
+      // Global initialization function
+      function initializeApp() {
+        if (typeof webix !== "undefined" && typeof require !== "undefined") {
+          init();
+        } else {
+          console.error("Dependencies not ready:", {
+            webix: typeof webix !== "undefined",
+            monaco: typeof require !== "undefined"
+          });
+        }
+      }
+    </script>
     <!-- Load scripts with error handling -->
     <script>
       function loadScript(src, callback) {
@@ -38,23 +55,9 @@
               // Load DB Connection Manager
               loadScript("#{dbconnectionJs}", function() {
                 debugElement.textContent += "\nDB Connection Manager loaded";
+                debugElement.textContent += "\nAll dependencies loaded, starting initialization";
                 // Start initialization after all scripts are loaded
-                if (
-                  typeof webix !== "undefined" &&
-                  typeof require !== "undefined"
-                ) {
-                  debugElement.textContent +=
-                    "\nAll dependencies loaded, starting initialization";
-                  init();
-                } else {
-                  debugElement.textContent += "\nDependencies not ready:";
-                  debugElement.textContent +=
-                    "\nWebix: " +
-                    (typeof webix !== "undefined" ? "loaded" : "not loaded");
-                  debugElement.textContent +=
-                    "\nMonaco: " +
-                    (typeof require !== "undefined" ? "loaded" : "not loaded");
-                }
+                initializeApp();
               });
             });
           });

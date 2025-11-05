@@ -1,7 +1,6 @@
 // Initialize when everything is loaded
 (function () {
   const debug = document.getElementById("debug");
-  const vscode = acquireVsCodeApi();
   let editor;
   let showDebug = false; // Control debug visibility
 
@@ -260,8 +259,8 @@
     }
   }
 
-  // Main initialization function - exposed globally
-  window.init = function () {
+  // Main initialization function
+  function init() {
     try {
       debug.textContent += "\nStarting full initialization";
 
@@ -285,5 +284,8 @@
       console.error("Global init error:", e);
       setTimeout(window.init, 100);
     }
-  };
+  }
+
+  // Expose initialization function globally
+  window.init = init;
 })();

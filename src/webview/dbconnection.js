@@ -1,3 +1,30 @@
+// Handle messages from the extension
+window.addEventListener("message", (event) => {
+  const message = event.data;
+  switch (message.command) {
+    case "saveSuccess":
+      webix.message({ type: "success", text: "Connection saved successfully" });
+      refreshConnectionsList();
+      break;
+    case "deleteSuccess":
+      webix.message({
+        type: "success",
+        text: "Connection deleted successfully",
+      });
+      refreshConnectionsList();
+      break;
+    case "connectionList":
+      if ($$("connectionsList")) {
+        $$("connectionsList").clearAll();
+        $$("connectionsList").parse(message.connections);
+      }
+      break;
+    case "error":
+      webix.message({ type: "error", text: message.error });
+      break;
+  }
+});
+
 function openDBManager() {
   const prefix = "dbconn_mgr";
   const winId = prefix + "_win",
@@ -10,10 +37,65 @@ function openDBManager() {
     $$(prefix + "_win").destructor();
   };
 
-  function save(isDuplicate) {
-    if ($$(prefix + "_form").validate()) {
-      const data = $$(prefix + "_form").getValues();
-      console.log("data", data);
+  function save(isDuplicate = false) {
+    const form = $$(prefix + "_form");
+    if (!form.validate()) {
+      webix.message({
+        type: "error",
+        text: "Please fill in all required fields",
+      });
+      //   return;
+    } else {
+      const values = form.getValues();
+      console.log("values", values);
+
+      // Prepare data for saving
+      const connectionData = {
+        name: values.conn_name,
+        host: values.host,
+        port: values.port,
+        database: values.database,
+        user: values.user,
+        password: values.password,
+        color: values.conn_color || "#D1D1D1",
+        is_active: values.is_active || true,
+        created_at: new Date().toISOString(),
+      };
+
+      // If in edit mode and not duplicating, include the id
+      if (isEdit && !isDuplicate) {
+        connectionData.id = values.id;
+      }
+
+      // Send to VS Code extension for SQLite storage
+      vscode.postMessage({
+        command: "saveConnection",
+        connection: connectionData,
+        isEdit: isEdit && !isDuplicate,
+      });
+
+      // Clear form and update UI
+      form.clear();
+      form.hide();
+      $$(prefix + "_add_btn").show();
+      $$(prefix + "_form_cancel_btn").hide();
+      $$(prefix + "_save_btn").hide();
+      $$(prefix + "_delete_btn").hide();
+      $$(prefix + "_duplicate_btn").hide();
+      $$(prefix + "_test_btn").hide();
+
+      // Reset state
+      isEdit = false;
+      oldConnName = "";
+
+      // Request refresh of connections list
+      vscode.postMessage({
+        command: "getConnections",
+      });
+      // if ($$(prefix + "_form").validate()) {
+      //   const data = $$(prefix + "_form").getValues();
+      //   console.log("data", data);
+      // }
     }
   }
 

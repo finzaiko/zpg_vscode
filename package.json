@@ -9,7 +9,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onCommand:zpg-editor.openEditor"],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -36,6 +36,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "@types/sqlite3": "^3.1.11",
     "@types/vscode": "^1.105.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
@@ -51,6 +52,8 @@
     "@types/pg": "^8.15.6",
     "monaco-editor": "^0.54.0",
     "pg": "^8.16.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "webix": "^11.2.0"
   }
 }
