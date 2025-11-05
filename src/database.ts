@@ -65,6 +65,7 @@ export class DatabaseManager {
 
         try {
             if (isEdit && connection.id) {
+                console.log("UPDATE /////", connection.id);
                 // Update existing connection
                 await this.db.run(
                     `
@@ -87,6 +88,8 @@ export class DatabaseManager {
                     ],
                 );
             } else {
+                console.log("INSERT /////");
+
                 // Insert new connection
                 await this.db.run(
                     `

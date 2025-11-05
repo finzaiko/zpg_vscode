@@ -14,9 +14,14 @@ window.addEventListener("message", (event) => {
       refreshConnectionsList();
       break;
     case "connectionList":
-      if ($$("connectionsList")) {
-        $$("connectionsList").clearAll();
-        $$("connectionsList").parse(message.connections);
+      const table = $$("dbconn_mgr_table");
+      if (table) {
+        table.hideOverlay();
+        table.clearAll();
+        table.parse(message.connections);
+        if (message.connections.length === 0) {
+          table.showOverlay("No connections found");
+        }
       }
       break;
     case "error":
@@ -51,7 +56,7 @@ function openDBManager() {
 
       // Prepare data for saving
       const connectionData = {
-        name: values.conn_name,
+        name: values.name,
         host: values.host,
         port: values.port,
         database: values.database,
@@ -115,8 +120,8 @@ function openDBManager() {
                 view: "text",
                 label: "Name",
                 css: "white-labels",
-                name: "conn_name",
-                id: prefix + "_conn_name",
+                name: "name",
+                id: prefix + "_name",
               },
               {
                 view: "colorpicker",
@@ -178,7 +183,7 @@ function openDBManager() {
         cols: [
           {
             view: "text",
-            label: "Username",
+            label: "User",
             css: "white-labels",
             name: "user",
             id: prefix + "_user",
@@ -199,7 +204,7 @@ function openDBManager() {
       },
     ],
     rules: {
-      conn_name: webix.rules.isNotEmpty,
+      name: webix.rules.isNotEmpty,
       database: webix.rules.isNotEmpty,
       host: webix.rules.isNotEmpty,
       port: webix.rules.isNotEmpty,
@@ -209,7 +214,7 @@ function openDBManager() {
         if (!result) {
           let text = [];
           for (var key in value) {
-            if (key === "conn_name") {
+            if (key === "name") {
               text.push("Name can't be empty");
             }
             if (key === "database") {
@@ -277,7 +282,36 @@ function openDBManager() {
             autowidth: true,
             hidden: true,
             click: function () {
-              remove();
+              const form = $$(prefix + "_form");
+              const values = form.getValues();
+              webix.confirm({
+                title: "Delete Connection",
+                text: `Are you sure you want to delete connection "${values.name}"?`,
+                ok: "Yes",
+                cancel: "No",
+                callback: function(result) {
+                  if (result) {
+                    // Send delete command to VS Code extension
+                    vscode.postMessage({
+                      command: "deleteConnection",
+                      connectionId: values.id
+                    });
+
+                    // Reset form and UI state
+                    form.clear();
+                    form.hide();
+                    $$(prefix + "_add_btn").show();
+                    $$(prefix + "_form_cancel_btn").hide();
+                    $$(prefix + "_save_btn").hide();
+                    $$(prefix + "_delete_btn").hide();
+                    $$(prefix + "_duplicate_btn").hide();
+                    $$(prefix + "_test_btn").hide();
+
+                    isEdit = false;
+                    oldConnName = "";
+                  }
+                }
+              });
             },
           },
           {
@@ -288,6 +322,23 @@ function openDBManager() {
             hidden: true,
             id: prefix + "_duplicate_btn",
             click: function () {
+              const form = $$(prefix + "_form");
+              const values = form.getValues();
+
+              // Generate timestamp in format YYMMDD_HHMMSS
+              const now = new Date();
+              const timestamp = now.toISOString()
+                .replace(/[-:]/g, '')
+                .replace(/[T.]/g, '')
+                .slice(2, 15);
+
+              // Update the name with (copy) and timestamp
+              form.setValues({
+                ...values,
+                name: `${values.name}(copy)_${timestamp}`,
+                id: null  // Clear ID for new record
+              });
+
               save(true);
             },
           },
@@ -344,52 +395,58 @@ function openDBManager() {
     drag: "order",
     columns: [
       {
-        id: "content",
+        id: "color",
         header: "",
         width: 6,
-        // template: function (obj) {
-        //   return obj.content !== null
-        //     ? `<span style='border-radius: 2px;display: inline-block;width:4px;height:20px;background:${obj.content};margin-top:4px;'></span>`
-        //     : "";
-        // },
         template: function (obj) {
-          return obj.content !== null
-            ? `
-            <span style='border-radius: 2px;display: inline-block;width:4px;height:20px;background:${obj.content};margin-top:4px;'></span>
-            `
+          return obj.color !== null
+            ? `<span style='border-radius: 2px;display: inline-block;width:4px;height:20px;background:${obj.color};margin-top:4px;'></span>`
             : "";
         },
       },
       {
-        id: "conn_name",
+        id: "name",
         header: ["Name", { content: "textFilter" }],
         width: 150,
+        sort: "text"
       },
       {
         id: "database",
         header: ["Database", { content: "textFilter" }],
         width: 150,
+        sort: "text"
       },
       {
         id: "host",
         header: ["Host", { content: "textFilter" }],
         width: 150,
+        sort: "text"
       },
       {
         id: "port",
         header: ["Port", { content: "numberFilter" }],
-        width: 100,
+        width: 80,
+        sort: "int"
       },
       {
         id: "user",
-        header: ["Username", { content: "textFilter" }],
-        width: 150,
+        header: ["User", { content: "textFilter" }],
+        width: 120,
+        sort: "text"
       },
       {
-        id: "ssl",
-        header: ["SSL", { content: "textFilter" }],
-        width: 50,
+        id: "is_active",
+        header: "Active",
+        width: 70,
+        template: "{common.checkbox()}",
       },
+      {
+        id: "created_at",
+        header: "Created",
+        width: 150,
+        format: webix.Date.dateToStr("%Y-%m-%d %H:%i"),
+        sort: "date"
+      }
     ],
     on: {
       onLoadError: function (text, xml, xhr) {
@@ -410,17 +467,33 @@ function openDBManager() {
         $$(prefix + "_delete_btn").show();
         $$(prefix + "_duplicate_btn").show();
         $$(prefix + "_add_btn").hide();
-        $$(prefix + "_password").setValue();
-        isEdit = true;
+
+        // Get selected item
         const item = this.getItem(sel);
-        oldConnName = item.conn_name;
+
+        // Fill form with selected item's data
+        $$(prefix + "_form").setValues({
+            id: item.id, // Add the id field
+            name: item.name,
+            database: item.database,
+            host: item.host,
+            port: item.port,
+            user: item.user,
+            password: item.password,
+            conn_color: item.color || "#D1D1D1",
+            is_active: item.is_active
+        });
+
+        isEdit = true;
+        oldConnName = item.name;
       },
       onItemDblClick: function () {},
       onAfterDrop: function (ctx, e) {
         updateQue(this);
       },
     },
-    url: `${url}/conn?type=2`,
+    // Load initial data
+    data: [],
   };
 
   const winBody = {
@@ -460,8 +533,7 @@ function openDBManager() {
     ],
   };
 
-  webix
-    .ui({
+  const win = webix.ui({
       view: "window",
       modal: true,
       id: winId,
@@ -473,6 +545,27 @@ function openDBManager() {
         template: "DB Connection",
       },
       body: winBody,
-    })
-    .show();
+      on: {
+        onShow: function() {
+          const table = $$(prefix + "_table");
+          table.showOverlay("Loading connections...");
+          // Request fresh data when window opens
+          refreshConnectionsList();
+        }
+      }
+    });
+
+    win.show();
+
+    // Request initial data
+    vscode.postMessage({
+        command: "getConnections"
+    });
+}
+
+// Function to refresh connections list
+function refreshConnectionsList() {
+    vscode.postMessage({
+        command: "getConnections"
+    });
 }
