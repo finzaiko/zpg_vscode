@@ -35,6 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
             const monacoLoaderPath = vscode.Uri.file(path.join(context.extensionPath, 'node_modules', 'monaco-editor', 'min', 'vs', 'loader.js'));
             const monacoCssPath = vscode.Uri.file(path.join(context.extensionPath, 'node_modules', 'monaco-editor', 'min', 'vs', 'editor', 'editor.main.css'));
             const editorJsPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'webview', 'editor.js'));
+            const dbconnectionJsPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'webview', 'dbconnection.js'));
             const stylesCssPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'webview', 'styles.css'));
 
             // Get the HTML content
@@ -49,6 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
             html = html.replace('#{monacoLoader}', currentPanel.webview.asWebviewUri(monacoLoaderPath).toString());
             html = html.replace('#{monacoCss}', currentPanel.webview.asWebviewUri(monacoCssPath).toString());
             html = html.replace('#{editorJs}', currentPanel.webview.asWebviewUri(editorJsPath).toString());
+            html = html.replace('#{dbconnectionJs}', currentPanel.webview.asWebviewUri(dbconnectionJsPath).toString());
             html = html.replace('#{stylesCss}', currentPanel.webview.asWebviewUri(stylesCssPath).toString());
 
             currentPanel.webview.html = html;

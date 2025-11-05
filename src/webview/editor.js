@@ -73,6 +73,8 @@
                 view: "button",
                 type: "icon",
                 autowidth: true,
+                css: "zmdi_padding zmdi_color_white",
+                tooltip: "Open new Query",
                 icon: "mdi mdi-play-box-multiple-outline",
               },
               {
@@ -89,14 +91,17 @@
               {
                 view: "button",
                 type: "icon",
-                css: "zmdi_padding",
-                id: "dbconn_toggle",
+                css: "zmdi_padding zmdi_color_white",
+                id: "dbconn_manage",
                 autowidth: true,
                 tooltip: "Manage DB Connection",
                 icon: "mdi mdi-connection",
                 click: function () {
-                  // this.$scope.ui(QueryDatabase).show();
-                  // TODO: Implement DB connection management
+                  console.log("Manage DB Connection clicked");
+                  if (!window.dbManager) {
+                    window.dbManager = new DBConnectionManager();
+                  }
+                  window.dbManager.show();
                 },
               },
               {

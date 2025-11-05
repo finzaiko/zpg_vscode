@@ -98,6 +98,16 @@ body {
   border-color: var(--vscode-panel-border) !important;
 }
 
+/* Form labels styling */
+.white-labels .webix_el_box label,
+.white-labels .webix_inp_label {
+  color: #ffffff !important;
+}
+
+.white-labels .webix_form {
+  background-color: var(--vscode-editor-background) !important;
+}
+
 .result-datatable .webix_dd_drag_column,
 .result-datatable .webix_hcolumn,
 .result-datatable .webix_hs_center,
@@ -111,4 +121,29 @@ body {
   font-size: 9pt;
   font-weight: 500;
   letter-spacing: 0;
+}
+
+.white-labels .webix_el_box label,
+.white-labels .webix_inp_label {
+  color: var(--vscode-tab-activeForeground) !important;
+}
+
+.transparent-value-picker .webix_inp_static {
+  padding-left: 50px !important;
+}
+
+.white-background-switch div {
+  background: var(--vscode-input-background) !important;
+}
+
+.white-background-switch .webix_switch_on {
+  background: #1ca1c1 !important;
+}
+
+.zmdi_padding button span {
+  padding-top: 2px;
+}
+
+.zmdi_color_white button span {
+  color: var(--vscode-button-foreground) !important;
 }

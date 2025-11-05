@@ -23,35 +23,39 @@
 
       // Load scripts in sequence
       window.addEventListener("load", function () {
-        const debug = document.getElementById("debug");
-        debug.textContent = "Starting script load...";
+        const debugElement = document.getElementById("debug");
+        debugElement.textContent = "Starting script load...";
 
         // Load Webix first
         loadScript("#{webixJs}", function () {
-          debug.textContent += "\nWebix script loaded";
+          debugElement.textContent += "\nWebix script loaded";
           // Then load Monaco
           loadScript("#{monacoLoader}", function () {
-            debug.textContent += "\nMonaco loader script loaded";
+            debugElement.textContent += "\nMonaco loader script loaded";
             // Initialize our editor
             loadScript("#{editorJs}", function () {
-              debug.textContent += "\nEditor script loaded";
-              // Start initialization after all scripts are loaded
-              if (
-                typeof webix !== "undefined" &&
-                typeof require !== "undefined"
-              ) {
-                debug.textContent +=
-                  "\nAll dependencies loaded, starting initialization";
-                init();
-              } else {
-                debug.textContent += "\nDependencies not ready:";
-                debug.textContent +=
-                  "\nWebix: " +
-                  (typeof webix !== "undefined" ? "loaded" : "not loaded");
-                debug.textContent +=
-                  "\nMonaco: " +
-                  (typeof require !== "undefined" ? "loaded" : "not loaded");
-              }
+              debugElement.textContent += "\nEditor script loaded";
+              // Load DB Connection Manager
+              loadScript("#{dbconnectionJs}", function() {
+                debugElement.textContent += "\nDB Connection Manager loaded";
+                // Start initialization after all scripts are loaded
+                if (
+                  typeof webix !== "undefined" &&
+                  typeof require !== "undefined"
+                ) {
+                  debugElement.textContent +=
+                    "\nAll dependencies loaded, starting initialization";
+                  init();
+                } else {
+                  debugElement.textContent += "\nDependencies not ready:";
+                  debugElement.textContent +=
+                    "\nWebix: " +
+                    (typeof webix !== "undefined" ? "loaded" : "not loaded");
+                  debugElement.textContent +=
+                    "\nMonaco: " +
+                    (typeof require !== "undefined" ? "loaded" : "not loaded");
+                }
+              });
             });
           });
         });
@@ -90,8 +94,8 @@
     </div>
     <div id="app"></div>
     <script>
-      const debug = document.getElementById("debug");
-      debug.textContent = "Loading...";
+      const debugLog = document.getElementById("debug");
+      debugLog.textContent = "Loading...";
 
       // Monitor for script load errors and CSS load errors
       window.addEventListener(
