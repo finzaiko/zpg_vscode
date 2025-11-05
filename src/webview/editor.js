@@ -97,11 +97,12 @@
                 tooltip: "Manage DB Connection",
                 icon: "mdi mdi-connection",
                 click: function () {
-                  console.log("Manage DB Connection clicked");
-                  if (!window.dbManager) {
-                    window.dbManager = new DBConnectionManager();
-                  }
-                  window.dbManager.show();
+                  // console.log("Manage DB Connection clicked");
+                  // if (!window.dbManager) {
+                  //   window.dbManager = new DBConnectionManager();
+                  // }
+                  // window.dbManager.show();
+                  openDBManager();
                 },
               },
               {

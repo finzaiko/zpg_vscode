@@ -1,305 +1,396 @@
-// Database Connection Management UI Component
-class DBConnectionManager {
-  constructor() {
-    console.log("Ini constructor");
+function openDBManager() {
+  const prefix = "dbconn_mgr";
+  const winId = prefix + "_win",
+    labelW = 70,
+    labelWCol2 = 70,
+    pageSize = 100;
 
-    this.window = null;
+  const close = () => {
+    $$(prefix + "_form").clear();
+    $$(prefix + "_win").destructor();
+  };
+
+  function save(isDuplicate) {
+    if ($$(prefix + "_form").validate()) {
+      const data = $$(prefix + "_form").getValues();
+      console.log("data", data);
+    }
   }
 
-  show() {
-    if (this.window) {
-      this.window.show();
-      return;
-    }
+  const form = {
+    padding: 10,
+    view: "form",
+    id: prefix + "_form",
 
-    this.window = webix.ui({
-      view: "window",
-      id: "dbConnectionWindow",
-      head: "Database Connections",
-      width: 600,
-      height: 500,
-      position: "center",
-      modal: true,
-      close: true,
-      body: {
-        rows: [
+    type: "clean",
+    hidden: true,
+    elements: [
+      {
+        cols: [
           {
-            padding: 10,
-            view: "form",
-            id: "dbconn_form",
-            // width: 500,
-            type: "clean",
-            // hidden: true,
-            elements: [
-              {
-                cols: [
-                  {
-                    cols: [
-                      {
-                        view: "text",
-                        label: "Name",
-                        css: "white-labels",
-                        name: "conn_name",
-                        id: "dbconn_conn_name",
-                        labelWidth: 70,
-                      },
-                      {
-                        view: "colorpicker",
-                        css: "short-picker",
-                        name: "content",
-                        css: "transparent-value-picker",
-                        tooltip: "Color",
-                        value: "#FFF",
-                        width: 30,
-                      },
-                    ],
-                  },
-                  { width: 8 },
-                  {
-                    view: "text",
-                    label: "Database",
-                    name: "database",
-                    css: "white-labels",
-                    id: "dbconn_database",
-                    labelWidth: 70,
-                  },
-                ],
-              },
-              {
-                cols: [
-                  {
-                    view: "text",
-                    label: "Host",
-                    css: "white-labels",
-                    name: "host",
-                    id: "dbconn_host",
-                    labelWidth: 70,
-                  },
-                  { width: 8 },
-                  {
-                    cols: [
-                      {
-                        view: "text",
-                        label: "Port",
-                        name: "port",
-                        id: "dbconn_port",
-                        css: "white-labels",
-                        value: "5432",
-                        type: "number",
-                        labelWidth: 70,
-                      },
-                      { width: 8 },
-                      {
-                        view: "switch",
-                        name: "ssl",
-                        css: "white-labels white-background-switch",
-                        value: 0,
-                        label: "SSL",
-                        labelWidth: 35,
-                        width: 80,
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                cols: [
-                  {
-                    view: "text",
-                    label: "Username",
-                    css: "white-labels",
-                    name: "user",
-                    id: "dbconn_user",
-                    labelWidth: 70,
-                  },
-                  { width: 8 },
-                  {
-                    view: "text",
-                    label: "Password",
-                    name: "password",
-                    id: "dbconn_password",
-                    type: "password",
-                    css: "white-labels",
-                    labelWidth: 70,
-                    attributes: { autocomplete: "off" },
-                    autocomplete: "new-password",
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            view: "toolbar",
             cols: [
               {
-                view: "button",
-                value: "Add New",
-                width: 100,
-                click: () => this.showConnectionForm(),
+                view: "text",
+                label: "Name",
+                css: "white-labels",
+                name: "conn_name",
+                id: prefix + "_conn_name",
               },
               {
-                view: "button",
-                value: "Delete",
-                width: 100,
-                click: () => this.deleteConnection(),
+                view: "colorpicker",
+                css: "transparent-value-picker short-picker white-labels",
+                name: "content",
+                tooltip: "Color",
+                value: "#FFF",
+                id: prefix + "_conn_color",
+                width: 30,
               },
             ],
           },
+          { width: 8 },
           {
-            view: "datatable",
-            id: "connectionsList",
-            columns: [
-              { id: "name", header: "Name", fillspace: 1 },
-              { id: "host", header: "Host", fillspace: 1 },
-              { id: "database", header: "Database", fillspace: 1 },
+            view: "text",
+            label: "Database",
+            name: "database",
+            css: "white-labels",
+            id: prefix + "_database",
+          },
+        ],
+      },
+      {
+        cols: [
+          {
+            view: "text",
+            label: "Host",
+            name: "host",
+            css: "white-labels",
+            id: prefix + "_host",
+          },
+          { width: 8 },
+          {
+            cols: [
               {
-                id: "test",
-                header: "Test",
-                width: 70,
-                template: "<span class='webix_icon mdi mdi-connection'></span>",
+                view: "text",
+                label: "Port",
+                name: "port",
+                id: prefix + "_port",
+                value: "5432",
+                type: "number",
+                css: "white-labels",
+                labelWidth: labelWCol2,
+              },
+              {
+                view: "switch",
+                css: "white-labels white-background-switch",
+                name: "ssl",
+                value: 0,
+                label: "SSL",
+                labelWidth: 35,
+                width: 80,
               },
             ],
-            select: true,
-            onClick: {
-              "mdi-connection": (e, id) => this.testConnection(id),
+          },
+        ],
+      },
+      {
+        cols: [
+          {
+            view: "text",
+            label: "Username",
+            css: "white-labels",
+            name: "user",
+            id: prefix + "_user",
+          },
+          { width: 8 },
+          {
+            view: "text",
+            label: "Password",
+            name: "password",
+            css: "white-labels",
+            id: prefix + "_password",
+            type: "password",
+            labelWidth: labelWCol2,
+            attributes: { autocomplete: "off" },
+            autocomplete: "new-password",
+          },
+        ],
+      },
+    ],
+    rules: {
+      conn_name: webix.rules.isNotEmpty,
+      database: webix.rules.isNotEmpty,
+      host: webix.rules.isNotEmpty,
+      port: webix.rules.isNotEmpty,
+    },
+    on: {
+      onAfterValidation: function (result, value) {
+        if (!result) {
+          let text = [];
+          for (var key in value) {
+            if (key === "conn_name") {
+              text.push("Name can't be empty");
+            }
+            if (key === "database") {
+              text.push("Database can't be empty");
+            }
+            if (key === "host") {
+              text.push("Host can't be empty");
+            }
+            if (key === "port") {
+              text.push("Port can't be empty");
+            }
+          }
+          webix.message({ type: "error", text: text.join("<br>") });
+        }
+      },
+    },
+    elementsConfig: {
+      labelPosition: "left",
+      labelWidth: labelW,
+      bottomPadding: 1,
+    },
+  };
+
+  const formToolbar = {
+    view: "toolbar",
+    id: prefix + "_form_tb",
+    css: "z-tb",
+    width: 500,
+    elements: [
+      {
+        cols: [
+          {
+            view: "button",
+            label: "Add",
+            autowidth: true,
+            id: prefix + "_add_btn",
+            click: function () {
+              $$(prefix + "_form").show();
+              $$(prefix + "_form").clear();
+              $$(prefix + "_save_btn").show();
+              $$(prefix + "_form_cancel_btn").show();
+              $$(prefix + "_add_btn").hide();
+              $$(prefix + "_test_btn").show();
+              $$(prefix + "_port").setValue("5432");
+              $$(prefix + "_conn_color").setValue("#D1D1D1");
+              isEdit = false;
+              oldConnName = "";
+            },
+          },
+          //   { width: labelW + 10 },
+          {
+            view: "button",
+            value: "Save",
+            autowidth: true,
+            hidden: true,
+            id: prefix + "_save_btn",
+            click: function () {
+              save();
+            },
+          },
+          {
+            view: "button",
+            value: "Delete",
+            id: prefix + "_delete_btn",
+            autowidth: true,
+            hidden: true,
+            click: function () {
+              remove();
+            },
+          },
+          {
+            view: "button",
+            value: "Duplicate",
+            tooltip: "Duplicate selected",
+            autowidth: true,
+            hidden: true,
+            id: prefix + "_duplicate_btn",
+            click: function () {
+              save(true);
+            },
+          },
+          {
+            view: "button",
+            value: "Cancel",
+            id: prefix + "_form_cancel_btn",
+            autowidth: true,
+            hidden: true,
+            click: function () {
+              $$(prefix + "_form").hide();
+              $$(prefix + "_add_btn").show();
+              $$(prefix + "_form_cancel_btn").hide();
+              $$(prefix + "_save_btn").hide();
+              $$(prefix + "_save_btn").setValue("Save");
+              $$(prefix + "_delete_btn").hide();
+              $$(prefix + "_dupicate_btn").hide();
+              $$(prefix + "_table").clearSelection();
+              isEdit = false;
+              oldConnName = "";
+            },
+          },
+          {},
+          {
+            view: "button",
+            label: "Test",
+            autowidth: true,
+            hidden: true,
+            id: prefix + "_test_btn",
+            click: function () {
+              let data = $$(prefix + "_form").getValues();
+              data.type = 2;
+              testConnection(false, data);
             },
           },
         ],
       },
-    });
-  }
+    ],
+  };
 
-  showConnectionForm(data = {}) {
-    webix
-      .ui({
-        view: "window",
-        id: "connectionForm",
-        move: true,
-        head: data.id ? "Edit Connection" : "New Connection",
-        width: 400,
-        position: "center",
-        modal: true,
-        close: true,
-        body: {
-          view: "form",
-          id: "connForm",
-          elements: [
-            { view: "text", label: "Name", name: "name", required: true },
-            { view: "text", label: "Host", name: "host", required: true },
-            { view: "text", label: "Port", name: "port", required: true },
-            {
-              view: "text",
-              label: "Database",
-              name: "database",
-              required: true,
-            },
-            {
-              view: "text",
-              label: "Username",
-              name: "username",
-              required: true,
-            },
-            {
-              view: "text",
-              type: "password",
-              label: "Password",
-              name: "password",
-              required: true,
-            },
-            {
-              cols: [
-                {
-                  view: "button",
-                  value: "Save",
-                  css: "webix_primary",
-                  click: () => this.saveConnection(),
-                },
-                {
-                  view: "button",
-                  value: "Cancel",
-                  click: () => $$("connectionForm").close(),
-                },
-              ],
-            },
-          ],
+  const url = "http://localhost:3000";
+
+  const grid = {
+    view: "datatable",
+    css: "db-connection-datatable",
+    id: prefix + "_table",
+    resizeColumn: true,
+    scrollX: true,
+    datafetch: pageSize,
+    select: "row",
+    height: 300,
+    pager: "pagerA",
+    editable: true,
+    drag: "order",
+    columns: [
+      {
+        id: "content",
+        header: "",
+        width: 6,
+        // template: function (obj) {
+        //   return obj.content !== null
+        //     ? `<span style='border-radius: 2px;display: inline-block;width:4px;height:20px;background:${obj.content};margin-top:4px;'></span>`
+        //     : "";
+        // },
+        template: function (obj) {
+          return obj.content !== null
+            ? `
+            <span style='border-radius: 2px;display: inline-block;width:4px;height:20px;background:${obj.content};margin-top:4px;'></span>
+            `
+            : "";
         },
-      })
-      .show();
-
-    if (data.id) {
-      $$("connForm").setValues(data);
-    }
-  }
-
-  saveConnection() {
-    const form = $$("connForm");
-    if (!form.validate()) return;
-
-    const values = form.getValues();
-    // Send connection data to VS Code extension
-    vscode.postMessage({
-      command: "saveConnection",
-      connection: values,
-    });
-
-    $$("connectionForm").close();
-    this.refreshConnectionsList();
-  }
-
-  deleteConnection() {
-    const selected = $$("connectionsList").getSelectedId();
-    if (!selected) {
-      webix.message("Please select a connection to delete");
-      return;
-    }
-
-    webix.confirm({
-      title: "Delete Connection",
-      text: "Are you sure you want to delete this connection?",
-      callback: (result) => {
-        if (result) {
-          vscode.postMessage({
-            command: "deleteConnection",
-            connectionId: selected.id,
-          });
-          this.refreshConnectionsList();
-        }
       },
-    });
-  }
+      {
+        id: "conn_name",
+        header: ["Name", { content: "textFilter" }],
+        width: 150,
+      },
+      {
+        id: "database",
+        header: ["Database", { content: "textFilter" }],
+        width: 150,
+      },
+      {
+        id: "host",
+        header: ["Host", { content: "textFilter" }],
+        width: 150,
+      },
+      {
+        id: "port",
+        header: ["Port", { content: "numberFilter" }],
+        width: 100,
+      },
+      {
+        id: "user",
+        header: ["Username", { content: "textFilter" }],
+        width: 150,
+      },
+      {
+        id: "ssl",
+        header: ["SSL", { content: "textFilter" }],
+        width: 50,
+      },
+    ],
+    on: {
+      onLoadError: function (text, xml, xhr) {
+        showError(xhr);
+      },
+      onBeforeLoad: function () {
+        this.showOverlay("Loading...");
+      },
+      onAfterLoad: function () {
+        this.hideOverlay();
+      },
+      onItemClick: function (sel) {
+        $$(prefix + "_form").show();
+        $$(prefix + "_form_cancel_btn").show();
+        $$(prefix + "_save_btn").show();
+        $$(prefix + "_save_btn").setValue("Update");
+        $$(prefix + "_test_btn").show();
+        $$(prefix + "_delete_btn").show();
+        $$(prefix + "_duplicate_btn").show();
+        $$(prefix + "_add_btn").hide();
+        $$(prefix + "_password").setValue();
+        isEdit = true;
+        const item = this.getItem(sel);
+        oldConnName = item.conn_name;
+      },
+      onItemDblClick: function () {},
+      onAfterDrop: function (ctx, e) {
+        updateQue(this);
+      },
+    },
+    url: `${url}/conn?type=2`,
+  };
 
-  testConnection(id) {
-    const row = $$("connectionsList").getItem(id);
-    vscode.postMessage({
-      command: "testConnection",
-      connection: row,
-    });
-  }
+  const winBody = {
+    rows: [
+      {
+        rows: [
+          form,
+          formToolbar,
+          grid,
+          {
+            view: "toolbar",
+            elements: [
+              {
+                view: "pager",
+                id: "pagerA",
+                css: "z-pager-aligned-left",
+                size: pageSize,
+                template: function (data, common) {
+                  return data.count > 0
+                    ? `<span class='z-pager-no'>${data.count}</span>`
+                    : "";
+                },
+              },
+              {},
+              {
+                view: "button",
+                value: "Close",
+                autowidth: true,
+                click: function () {
+                  close();
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
 
-  refreshConnectionsList() {
-    vscode.postMessage({
-      command: "getConnections",
-    });
-  }
-
-  // Method to handle incoming messages from VS Code
-  handleMessage(message) {
-    switch (message.command) {
-      case "connectionList":
-        $$("connectionsList").clearAll();
-        $$("connectionsList").parse(message.connections);
-        break;
-      case "testResult":
-        webix.message({
-          text: message.success
-            ? "Connection successful!"
-            : "Connection failed: " + message.error,
-          type: message.success ? "success" : "error",
-        });
-        break;
-    }
-  }
+  webix
+    .ui({
+      view: "window",
+      modal: true,
+      id: winId,
+      position: "center",
+      move: true,
+      width: 600,
+      head: {
+        height: 38,
+        template: "DB Connection",
+      },
+      body: winBody,
+    })
+    .show();
 }
-
-// Export the class
-window.DBConnectionManager = DBConnectionManager;

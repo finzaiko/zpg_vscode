@@ -114,7 +114,14 @@ body {
 .result-datatable .webix_hs_left,
 .result-datatable .webix_hs_right,
 .result-datatable .webix_ss_header,
-.result-datatable .webix_ss_vscroll_header {
+.result-datatable .webix_ss_vscroll_header,
+.db-connection-datatable .webix_dd_drag_column,
+.db-connection-datatable .webix_hcolumn,
+.db-connection-datatable .webix_hs_center,
+.db-connection-datatable .webix_hs_left,
+.db-connection-datatable .webix_hs_right,
+.db-connection-datatable .webix_ss_header,
+.db-connection-datatable .webix_ss_vscroll_header {
   background: var(--vscode-editor-background);
   color: #313131;
   font-family: Roboto, sans-serif;
@@ -130,6 +137,8 @@ body {
 
 .transparent-value-picker .webix_inp_static {
   padding-left: 50px !important;
+  border: none !important;
+  background: transparent !important;
 }
 
 .white-background-switch div {
@@ -146,4 +155,10 @@ body {
 
 .zmdi_color_white button span {
   color: var(--vscode-button-foreground) !important;
+}
+
+.db-connection-datatable .webix_ss_filter > input {
+  background-color: var(--vscode-input-background) !important;
+  color: var(--vscode-input-foreground) !important;
+  border-color: var(--vscode-input-border) !important;
 }
