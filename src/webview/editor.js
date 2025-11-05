@@ -34,7 +34,7 @@
       }
 
       // Setup resize handler
-      window.addEventListener('resize', function() {
+      window.addEventListener("resize", function () {
         const monacoView = $$("monacoEditor");
         if (monacoView) {
           const appHeight = document.getElementById("app").offsetHeight;
@@ -50,7 +50,7 @@
       }
 
       // Setup resize handler
-      window.addEventListener('resize', function() {
+      window.addEventListener("resize", function () {
         const monacoView = $$("monacoEditor");
         if (monacoView) {
           monacoView.define("height", calculateEditorHeight());
@@ -85,6 +85,19 @@
                   { id: "conn2", value: "Connection 2" },
                   { id: "conn3", value: "Connection 3" },
                 ],
+              },
+              {
+                view: "button",
+                type: "icon",
+                css: "zmdi_padding",
+                id: "dbconn_toggle",
+                autowidth: true,
+                tooltip: "Manage DB Connection",
+                icon: "mdi mdi-connection",
+                click: function () {
+                  // this.$scope.ui(QueryDatabase).show();
+                  // TODO: Implement DB connection management
+                },
               },
               {
                 view: "button",
