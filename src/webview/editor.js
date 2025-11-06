@@ -18,7 +18,7 @@
   // Function to refresh connections list
   function refreshConnections() {
     vscode.postMessage({
-      command: "getConnections"
+      command: "getConnections",
     });
   }
 
@@ -29,10 +29,10 @@
       case "connectionList":
         const combo = $$("connectionCombo");
         if (combo) {
-          const options = message.connections.map(conn => ({
+          const options = message.connections.map((conn) => ({
             id: conn.id,
             value: `${conn.name} (${conn.database}@${conn.host})`,
-            connection: conn // Store full connection info
+            connection: conn, // Store full connection info
           }));
           combo.define("options", options);
           combo.refresh();
@@ -48,6 +48,38 @@
       debug.style.display = showDebug ? "block" : "none";
     }
   };
+
+  // Function to execute query
+  function executeQuery() {
+    const query = editor.getValue();
+    const combo = $$("connectionCombo");
+    const selectedItem = combo.getPopup().getList().getItem(combo.getValue());
+
+    if (!selectedItem) {
+      vscode.postMessage({
+        command: "showError",
+        message: "Please select a connection first",
+      });
+      return;
+    }
+
+    if (!query.trim()) {
+      vscode.postMessage({
+        command: "showError",
+        message: "Please enter a SQL query",
+      });
+      return;
+    }
+
+    // Show loading in result grid
+    $$("resultGrid").showOverlay("Executing query...");
+
+    vscode.postMessage({
+      command: "execute",
+      query: query,
+      connection: selectedItem.connection, // Send the full connection info
+    });
+  }
 
   // Create the UI with Webix
   function createUI() {
@@ -108,6 +140,14 @@
                 placeholder: "Select Connection",
                 width: 300,
                 options: [],
+                on: {
+                  onChange: function (newId) {
+                    if (newId) {
+                      // Save selected connection ID to localStorage
+                      localStorage.setItem("selectedConnectionId", newId);
+                    }
+                  },
+                },
               },
               {
                 view: "button",
@@ -126,30 +166,7 @@
                 id: "executeBtn",
                 value: "Execute",
                 width: 100,
-                click: function() {
-                  const query = editor.getValue();
-                  const combo = $$("connectionCombo");
-                  const selectedItem = combo.getPopup().getList().getItem(combo.getValue());
-
-                  if (!selectedItem) {
-                    webix.message({ type: "error", text: "Please select a connection first" });
-                    return;
-                  }
-
-                  if (!query.trim()) {
-                    webix.message({ type: "error", text: "Please enter a SQL query" });
-                    return;
-                  }
-
-                  // Show loading in result grid
-                  $$("resultGrid").showOverlay("Executing query...");
-
-                  vscode.postMessage({
-                    command: "execute",
-                    query: query,
-                    connection: selectedItem.connection // Send the full connection info
-                  });
-                },
+                click: executeQuery,
               },
             ],
           },
@@ -187,15 +204,15 @@
             columns: [],
             data: [],
             on: {
-              onBeforeLoad: function() {
+              onBeforeLoad: function () {
                 this.showOverlay("Loading...");
               },
-              onAfterLoad: function() {
+              onAfterLoad: function () {
                 this.hideOverlay();
                 if (!this.count()) {
                   this.showOverlay("No data to display");
                 }
-              }
+              },
             },
           },
         ],
@@ -234,49 +251,55 @@
           log("Creating Monaco editor");
           const container = document.getElementById("editorContainer");
           // Add paste event handler to container
-          container.addEventListener('paste', async (e) => {
+          container.addEventListener("paste", async (e) => {
             e.preventDefault();
             try {
               const text = await navigator.clipboard.readText();
               const position = editor.getPosition();
-              editor.executeEdits('paste', [{
-                range: new monaco.Range(
-                  position.lineNumber,
-                  position.column,
-                  position.lineNumber,
-                  position.column
-                ),
-                text: text,
-                forceMoveMarkers: true
-              }]);
+              editor.executeEdits("paste", [
+                {
+                  range: new monaco.Range(
+                    position.lineNumber,
+                    position.column,
+                    position.lineNumber,
+                    position.column
+                  ),
+                  text: text,
+                  forceMoveMarkers: true,
+                },
+              ]);
             } catch (err) {
-              console.error('Paste failed:', err);
+              console.error("Paste failed:", err);
             }
           });
 
           // Add keyboard event listener for paste
-          container.addEventListener('keydown', async (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+          container.addEventListener("keydown", async (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === "v") {
               e.preventDefault();
               try {
                 const text = await vscode.postMessage({
-                  command: 'getClipboardText'
+                  command: "getClipboardText",
                 });
                 const position = editor.getPosition();
-                editor.executeEdits('paste', [{
-                  range: {
-                    startLineNumber: position.lineNumber,
-                    startColumn: position.column,
-                    endLineNumber: position.lineNumber,
-                    endColumn: position.column
+                editor.executeEdits("paste", [
+                  {
+                    range: {
+                      startLineNumber: position.lineNumber,
+                      startColumn: position.column,
+                      endLineNumber: position.lineNumber,
+                      endColumn: position.column,
+                    },
+                    text: text,
                   },
-                  text: text
-                }]);
+                ]);
               } catch (err) {
-                console.error('Paste failed:', err);
+                console.error("Paste failed:", err);
               }
             }
           });
+
+          // Add keyboard shortcut to use the existing executeQuery function
 
           editor = monaco.editor.create(container, {
             value: "",
@@ -299,17 +322,17 @@
             ariaLabel: "SQL Editor",
             tabSize: 2,
             insertSpaces: true,
-            wordWrap: 'on',
-            lineNumbers: 'on',
+            wordWrap: "on",
+            lineNumbers: "on",
             glyphMargin: true,
             // Enable actions
             contextmenu: true,
             quickSuggestions: true,
             // Keyboard shortcuts
-            multiCursorModifier: 'alt',
+            multiCursorModifier: "alt",
             formatOnPaste: true,
-            autoClosingBrackets: 'always',
-            autoClosingQuotes: 'always',
+            autoClosingBrackets: "always",
+            autoClosingQuotes: "always",
             // Enable clipboard and keyboard shortcuts
             acceptSuggestionOnEnter: "on",
             cursorBlinking: "smooth",
@@ -317,11 +340,11 @@
             find: {
               addExtraSpaceOnTop: false,
               autoFindInSelection: "never",
-              seedSearchStringFromSelection: "selection"
+              seedSearchStringFromSelection: "selection",
             },
             // Enable clipboard features
             contextmenu: true,
-            multiCursorModifier: 'ctrlCmd',
+            multiCursorModifier: "ctrlCmd",
             copyWithSyntaxHighlighting: true,
             // Enable common keyboard shortcuts
             quickSuggestions: true,
@@ -331,12 +354,19 @@
             links: true,
             mouseWheelZoom: true,
             parameterHints: {
-              enabled: true
+              enabled: true,
             },
-            suggestOnTriggerCharacters: true
+            suggestOnTriggerCharacters: true,
           });
 
-          // No need for setup here as the button click is handled in the UI definition
+          // Add keyboard shortcut for executing query
+          editor.addCommand(
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+            executeQuery
+          );
+
+          // Focus the editor after creation
+          editor.focus();
 
           // Set up message listener
           window.addEventListener("message", (event) => {
@@ -344,17 +374,19 @@
             const grid = $$("resultGrid");
 
             // Handle clipboard text response
-            if (message.command === 'clipboardText') {
+            if (message.command === "clipboardText") {
               const position = editor.getPosition();
-              editor.executeEdits('paste', [{
-                range: {
-                  startLineNumber: position.lineNumber,
-                  startColumn: position.column,
-                  endLineNumber: position.lineNumber,
-                  endColumn: position.column
+              editor.executeEdits("paste", [
+                {
+                  range: {
+                    startLineNumber: position.lineNumber,
+                    startColumn: position.column,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column,
+                  },
+                  text: message.text,
                 },
-                text: message.text
-              }]);
+              ]);
               return;
             }
 
@@ -364,7 +396,10 @@
                 grid.hideOverlay();
 
                 if (message.error) {
-                  webix.message({ type: "error", text: message.error });
+                  vscode.postMessage({
+                    command: "showError",
+                    message: message.error,
+                  });
                   grid.clearAll();
                   grid.showOverlay("No data to display");
                   return;
@@ -378,14 +413,14 @@
                 }
 
                 // Configure columns based on the field names from PostgreSQL
-                const columns = message.columns.map(colName => ({
+                const columns = message.columns.map((colName) => ({
                   id: colName,
                   header: [
                     { text: colName },
-                    { content: "textFilter" }  // Add filter for each column
+                    { content: "textFilter" }, // Add filter for each column
                   ],
-                  adjust: "data",  // Auto-adjust width based on content
-                  sort: "string"   // Enable sorting
+                  adjust: "data", // Auto-adjust width based on content
+                  sort: "string", // Enable sorting
                 }));
 
                 // Update grid configuration
@@ -397,12 +432,18 @@
                 grid.parse(message.data);
 
                 // Show record count
-                webix.message({ type: "success", text: `Query returned ${message.data.length} records` });
+                vscode.postMessage({
+                  command: "showMessage",
+                  message: `Query returned ${message.data.length} records`,
+                });
                 break;
 
               case "queryError":
                 grid.hideOverlay();
-                webix.message({ type: "error", text: message.error });
+                vscode.postMessage({
+                  command: "showError",
+                  message: message.error,
+                });
                 grid.clearAll();
                 grid.showOverlay("Error executing query");
                 break;
@@ -410,13 +451,31 @@
               case "connectionList":
                 const combo = $$("connectionCombo");
                 if (combo) {
-                  const options = message.connections.map(conn => ({
+                  const options = message.connections.map((conn) => ({
                     id: conn.id,
                     value: `${conn.name} (${conn.database}@${conn.host})`,
-                    connection: conn
+                    connection: conn,
                   }));
                   combo.define("options", options);
                   combo.refresh();
+
+                  // Restore previously selected connection
+                  const savedConnectionId = localStorage.getItem(
+                    "selectedConnectionId"
+                  );
+                  if (savedConnectionId) {
+                    // Check if saved connection still exists
+                    const connectionExists = message.connections.some(
+                      (conn) =>
+                        conn.id.toString() === savedConnectionId.toString()
+                    );
+                    if (connectionExists) {
+                      combo.setValue(savedConnectionId);
+                    } else {
+                      // If connection no longer exists, clear saved selection
+                      localStorage.removeItem("selectedConnectionId");
+                    }
+                  }
                 }
                 break;
             }
@@ -436,15 +495,15 @@
     }
   }
 
-  // Main initialization function
-  function init() {
+  // Define initialization function
+  function initialize() {
     try {
-      debug.textContent += "\nStarting full initialization";
+      log("Starting full initialization");
 
       // Create UI first
       if (!createUI()) {
-        debug.textContent += "\nUI creation failed, retrying...";
-        setTimeout(window.init, 100);
+        log("UI creation failed, retrying...");
+        setTimeout(initialize, 100);
         return;
       }
 
@@ -453,19 +512,26 @@
 
       // Then setup Monaco
       if (!initMonaco()) {
-        debug.textContent += "\nMonaco setup failed, retrying...";
-        setTimeout(window.init, 100);
+        log("Monaco setup failed, retrying...");
+        setTimeout(initialize, 100);
         return;
       }
 
-      debug.textContent += "\nInitialization complete";
+      log("Initialization complete");
+
+      // Ensure editor gets focus after everything is initialized
+      setTimeout(() => {
+        if (editor) {
+          editor.focus();
+        }
+      }, 100);
     } catch (e) {
-      debug.textContent += "\nGlobal initialization error: " + e.message;
+      log("Global initialization error: " + e.message);
       console.error("Global init error:", e);
-      setTimeout(window.init, 100);
+      setTimeout(initialize, 100);
     }
   }
 
-  // Expose initialization function globally
-  window.init = init;
+  // Start initialization when script loads
+  initialize();
 })();

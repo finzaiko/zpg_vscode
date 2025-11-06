@@ -75,6 +75,10 @@ export async function activate(context: vscode.ExtensionContext) {
                                     text: clipboardText
                                 });
                                 break;
+                            case 'showError':
+                                vscode.window.showErrorMessage(message.message);
+                                break;
+
                             case 'execute':
                                 try {
                                     const client = new Client(message.connection);
@@ -89,6 +93,7 @@ export async function activate(context: vscode.ExtensionContext) {
                                         data: result.rows
                                     });
                                 } catch (err: any) {
+                                    // $$("resultGrid").hideOverlay();
                                     vscode.window.showErrorMessage(`Error executing query: ${err.message}`);
                                 }
                                 break;

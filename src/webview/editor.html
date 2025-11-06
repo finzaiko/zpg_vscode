@@ -15,12 +15,14 @@
       // Global initialization function
       function initializeApp() {
         if (typeof webix !== "undefined" && typeof require !== "undefined") {
-          init();
+          initialize();
         } else {
           console.error("Dependencies not ready:", {
             webix: typeof webix !== "undefined",
             monaco: typeof require !== "undefined"
           });
+          // Retry initialization
+          setTimeout(initializeApp, 100);
         }
       }
     </script>
