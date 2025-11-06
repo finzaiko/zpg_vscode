@@ -289,12 +289,12 @@ function openDBManager() {
                 text: `Are you sure you want to delete connection "${values.name}"?`,
                 ok: "Yes",
                 cancel: "No",
-                callback: function(result) {
+                callback: function (result) {
                   if (result) {
                     // Send delete command to VS Code extension
                     vscode.postMessage({
                       command: "deleteConnection",
-                      connectionId: values.id
+                      connectionId: values.id,
                     });
 
                     // Reset form and UI state
@@ -310,7 +310,7 @@ function openDBManager() {
                     isEdit = false;
                     oldConnName = "";
                   }
-                }
+                },
               });
             },
           },
@@ -327,16 +327,17 @@ function openDBManager() {
 
               // Generate timestamp in format YYMMDD_HHMMSS
               const now = new Date();
-              const timestamp = now.toISOString()
-                .replace(/[-:]/g, '')
-                .replace(/[T.]/g, '')
+              const timestamp = now
+                .toISOString()
+                .replace(/[-:]/g, "")
+                .replace(/[T.]/g, "")
                 .slice(2, 15);
 
               // Update the name with (copy) and timestamp
               form.setValues({
                 ...values,
                 name: `${values.name}(copy)_${timestamp}`,
-                id: null  // Clear ID for new record
+                id: null, // Clear ID for new record
               });
 
               save(true);
@@ -408,45 +409,48 @@ function openDBManager() {
         id: "name",
         header: ["Name", { content: "textFilter" }],
         width: 150,
-        sort: "text"
+        sort: "text",
       },
       {
         id: "database",
         header: ["Database", { content: "textFilter" }],
         width: 150,
-        sort: "text"
+        sort: "text",
       },
       {
         id: "host",
         header: ["Host", { content: "textFilter" }],
         width: 150,
-        sort: "text"
+        sort: "text",
       },
       {
         id: "port",
         header: ["Port", { content: "numberFilter" }],
         width: 80,
-        sort: "int"
+        sort: "int",
       },
       {
         id: "user",
         header: ["User", { content: "textFilter" }],
         width: 120,
-        sort: "text"
+        sort: "text",
       },
+
       {
         id: "is_active",
         header: "Active",
         width: 70,
+        hidden: true,
         template: "{common.checkbox()}",
       },
       {
         id: "created_at",
         header: "Created",
         width: 150,
+        hidden: true,
         format: webix.Date.dateToStr("%Y-%m-%d %H:%i"),
-        sort: "date"
-      }
+        sort: "date",
+      },
     ],
     on: {
       onLoadError: function (text, xml, xhr) {
@@ -473,15 +477,15 @@ function openDBManager() {
 
         // Fill form with selected item's data
         $$(prefix + "_form").setValues({
-            id: item.id, // Add the id field
-            name: item.name,
-            database: item.database,
-            host: item.host,
-            port: item.port,
-            user: item.user,
-            password: item.password,
-            conn_color: item.color || "#D1D1D1",
-            is_active: item.is_active
+          id: item.id, // Add the id field
+          name: item.name,
+          database: item.database,
+          host: item.host,
+          port: item.port,
+          user: item.user,
+          password: item.password,
+          conn_color: item.color || "#D1D1D1",
+          is_active: item.is_active,
         });
 
         isEdit = true;
@@ -534,38 +538,38 @@ function openDBManager() {
   };
 
   const win = webix.ui({
-      view: "window",
-      modal: true,
-      id: winId,
-      position: "center",
-      move: true,
-      width: 600,
-      head: {
-        height: 38,
-        template: "DB Connection",
+    view: "window",
+    modal: true,
+    id: winId,
+    position: "center",
+    move: true,
+    width: 600,
+    head: {
+      height: 38,
+      template: "DB Connection",
+    },
+    body: winBody,
+    on: {
+      onShow: function () {
+        const table = $$(prefix + "_table");
+        table.showOverlay("Loading connections...");
+        // Request fresh data when window opens
+        refreshConnectionsList();
       },
-      body: winBody,
-      on: {
-        onShow: function() {
-          const table = $$(prefix + "_table");
-          table.showOverlay("Loading connections...");
-          // Request fresh data when window opens
-          refreshConnectionsList();
-        }
-      }
-    });
+    },
+  });
 
-    win.show();
+  win.show();
 
-    // Request initial data
-    vscode.postMessage({
-        command: "getConnections"
-    });
+  // Request initial data
+  vscode.postMessage({
+    command: "getConnections",
+  });
 }
 
 // Function to refresh connections list
 function refreshConnectionsList() {
-    vscode.postMessage({
-        command: "getConnections"
-    });
+  vscode.postMessage({
+    command: "getConnections",
+  });
 }
