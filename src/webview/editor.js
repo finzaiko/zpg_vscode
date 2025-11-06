@@ -15,6 +15,32 @@
     }
   }
 
+  // Function to refresh connections list
+  function refreshConnections() {
+    vscode.postMessage({
+      command: "getConnections"
+    });
+  }
+
+  // Handle messages from the extension
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+    switch (message.command) {
+      case "connectionList":
+        const combo = $$("connectionCombo");
+        if (combo) {
+          const options = message.connections.map(conn => ({
+            id: conn.id,
+            value: `${conn.name} (${conn.database}@${conn.host})`,
+            connection: conn // Store full connection info
+          }));
+          combo.define("options", options);
+          combo.refresh();
+        }
+        break;
+    }
+  });
+
   // Function to toggle debug visibility
   window.toggleDebug = function () {
     showDebug = !showDebug;
@@ -81,11 +107,7 @@
                 id: "connectionCombo",
                 placeholder: "Select Connection",
                 width: 300,
-                options: [
-                  { id: "conn1", value: "Connection 1" },
-                  { id: "conn2", value: "Connection 2" },
-                  { id: "conn3", value: "Connection 3" },
-                ],
+                options: [],
               },
               {
                 view: "button",
@@ -96,11 +118,6 @@
                 tooltip: "Manage DB Connection",
                 icon: "mdi mdi-connection",
                 click: function () {
-                  // console.log("Manage DB Connection clicked");
-                  // if (!window.dbManager) {
-                  //   window.dbManager = new DBConnectionManager();
-                  // }
-                  // window.dbManager.show();
                   openDBManager();
                 },
               },
@@ -270,6 +287,9 @@
         setTimeout(window.init, 100);
         return;
       }
+
+      // Load initial connections
+      refreshConnections();
 
       // Then setup Monaco
       if (!initMonaco()) {

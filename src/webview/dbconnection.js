@@ -380,8 +380,6 @@ function openDBManager() {
     ],
   };
 
-  const url = "http://localhost:3000";
-
   const grid = {
     view: "datatable",
     css: "db-connection-datatable",
