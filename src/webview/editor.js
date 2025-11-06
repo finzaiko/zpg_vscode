@@ -126,6 +126,30 @@
                 id: "executeBtn",
                 value: "Execute",
                 width: 100,
+                click: function() {
+                  const query = editor.getValue();
+                  const combo = $$("connectionCombo");
+                  const selectedItem = combo.getPopup().getList().getItem(combo.getValue());
+
+                  if (!selectedItem) {
+                    webix.message({ type: "error", text: "Please select a connection first" });
+                    return;
+                  }
+
+                  if (!query.trim()) {
+                    webix.message({ type: "error", text: "Please enter a SQL query" });
+                    return;
+                  }
+
+                  // Show loading in result grid
+                  $$("resultGrid").showOverlay("Executing query...");
+
+                  vscode.postMessage({
+                    command: "execute",
+                    query: query,
+                    connection: selectedItem.connection // Send the full connection info
+                  });
+                },
               },
             ],
           },
@@ -152,28 +176,27 @@
             css: "result-datatable",
             autoheight: false,
             select: "row",
-            columns: [
-              { id: "rank", header: "", width: 50 },
-              { id: "title", header: "Film title", width: 200 },
-              { id: "year", header: "Released", width: 80 },
-              { id: "votes", header: "Votes", width: 100 },
-            ],
-            data: [
-              {
-                id: 1,
-                title: "The Shawshank Redemption",
-                year: 1994,
-                votes: 678790,
-                rank: 1,
+            resizeColumn: true,
+            fixedRowHeight: false,
+            scrollX: true,
+            scrollY: true,
+            export: true,
+            leftSplit: 0,
+            rightSplit: 0,
+            columnWidth: 100,
+            columns: [],
+            data: [],
+            on: {
+              onBeforeLoad: function() {
+                this.showOverlay("Loading...");
               },
-              {
-                id: 2,
-                title: "The Godfather",
-                year: 1972,
-                votes: 511495,
-                rank: 2,
-              },
-            ],
+              onAfterLoad: function() {
+                this.hideOverlay();
+                if (!this.count()) {
+                  this.showOverlay("No data to display");
+                }
+              }
+            },
           },
         ],
       });
@@ -229,35 +252,73 @@
             },
           });
 
-          // Setup event handlers
-          $$("executeBtn").attachEvent("onItemClick", function () {
-            const query = editor.getValue();
-            const connection = $$("connectionCombo").getValue();
-            vscode.postMessage({
-              command: "execute",
-              query: query,
-              connection: connection,
-            });
-          });
+          // No need for setup here as the button click is handled in the UI definition
 
           // Set up message listener
           window.addEventListener("message", (event) => {
             const message = event.data;
+            const grid = $$("resultGrid");
+
             switch (message.command) {
-              case "connections":
-                $$("connectionCombo").define("options", message.connections);
-                $$("connectionCombo").refresh();
-                break;
               case "results":
-                const columns = message.columns.map((col) => ({
-                  id: col,
-                  header: col,
-                  adjust: true,
+                // Hide loading overlay
+                grid.hideOverlay();
+
+                if (message.error) {
+                  webix.message({ type: "error", text: message.error });
+                  grid.clearAll();
+                  grid.showOverlay("No data to display");
+                  return;
+                }
+
+                // Check if we have data to display
+                if (!message.data || message.data.length === 0) {
+                  grid.clearAll();
+                  grid.showOverlay("No data returned");
+                  return;
+                }
+
+                // Configure columns based on the field names from PostgreSQL
+                const columns = message.columns.map(colName => ({
+                  id: colName,
+                  header: [
+                    { text: colName },
+                    { content: "textFilter" }  // Add filter for each column
+                  ],
+                  adjust: "data",  // Auto-adjust width based on content
+                  sort: "string"   // Enable sorting
                 }));
-                $$("resultGrid").config.columns = columns;
-                $$("resultGrid").refreshColumns();
-                $$("resultGrid").clearAll();
-                $$("resultGrid").parse(message.data);
+
+                // Update grid configuration
+                grid.config.columns = columns;
+                grid.refreshColumns();
+                grid.clearAll();
+
+                // Load the data
+                grid.parse(message.data);
+
+                // Show record count
+                webix.message({ type: "success", text: `Query returned ${message.data.length} records` });
+                break;
+
+              case "queryError":
+                grid.hideOverlay();
+                webix.message({ type: "error", text: message.error });
+                grid.clearAll();
+                grid.showOverlay("Error executing query");
+                break;
+
+              case "connectionList":
+                const combo = $$("connectionCombo");
+                if (combo) {
+                  const options = message.connections.map(conn => ({
+                    id: conn.id,
+                    value: `${conn.name} (${conn.database}@${conn.host})`,
+                    connection: conn
+                  }));
+                  combo.define("options", options);
+                  combo.refresh();
+                }
                 break;
             }
           });

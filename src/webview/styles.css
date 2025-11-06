@@ -108,21 +108,14 @@ body {
   background-color: var(--vscode-editor-background) !important;
 }
 
-.result-datatable .webix_dd_drag_column,
-.result-datatable .webix_hcolumn,
-.result-datatable .webix_hs_center,
-.result-datatable .webix_hs_left,
-.result-datatable .webix_hs_right,
-.result-datatable .webix_ss_header,
-.result-datatable .webix_ss_vscroll_header,
-.db-connection-datatable .webix_dd_drag_column,
-.db-connection-datatable .webix_hcolumn,
-.db-connection-datatable .webix_hs_center,
-.db-connection-datatable .webix_hs_left,
-.db-connection-datatable .webix_hs_right,
-.db-connection-datatable .webix_ss_header,
-.db-connection-datatable .webix_ss_vscroll_header {
-  background: var(--vscode-editor-background);
+.webix_dtable .webix_dd_drag_column,
+.webix_dtable .webix_hcolumn,
+.webix_dtable .webix_hs_center,
+.webix_dtable .webix_hs_left,
+.webix_dtable .webix_hs_right,
+.webix_dtable .webix_ss_header,
+.webix_dtable .webix_ss_vscroll_header {
+  background: var(--vscode-editor-background) !important;
   color: #313131;
   font-family: Roboto, sans-serif;
   font-size: 9pt;
@@ -170,8 +163,59 @@ body {
   border: none !important;
 }
 
-.webix_popup_title, .webix_popup_text, .webix_popup_controls {
+.webix_popup_title,
+.webix_popup_text,
+.webix_popup_controls {
   background-color: var(--vscode-editor-background) !important;
   color: var(--vscode-editor-foreground) !important;
   border: none !important;
 }
+
+/* RESULT DATATABLE ====================== */
+
+/* Datatable header styles */
+.result-datatable .webix_hcell {
+  background-color: #2d2d2d !important;
+  color: #ffffff !important;
+  border-color: #3d3d3d !important;
+  font-weight: bold !important;
+  font-size: 13px !important;
+}
+
+/* Filter row styles */
+.result-datatable .webix_ss_filter {
+  background-color: #363636 !important;
+  border-color: #3d3d3d !important;
+}
+
+/* Filter input styles */
+.result-datatable .webix_ss_filter input {
+  background-color: #424242 !important;
+  color: #ffffff !important;
+  border: 1px solid #505050 !important;
+  padding: 4px 8px !important;
+}
+
+/* Filter input focus state */
+.result-datatable .webix_ss_filter input:focus {
+  border-color: #0e639c !important;
+  outline: none !important;
+}
+
+/* Header hover state */
+.result-datatable .webix_hcell:hover {
+  background-color: #383838 !important;
+}
+
+/* Sort markers */
+.result-datatable .webix_hcell.webix_ss_sort_asc,
+.result-datatable .webix_hcell.webix_ss_sort_desc {
+  background-color: #383838 !important;
+}
+
+.result-datatable .webix_ss_sort_asc:before,
+.result-datatable .webix_ss_sort_desc:before {
+  color: #0e639c !important;
+}
+
+/* END: RESULT DATATABLE ====================== */
