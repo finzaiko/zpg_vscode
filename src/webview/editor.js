@@ -233,6 +233,51 @@
         try {
           log("Creating Monaco editor");
           const container = document.getElementById("editorContainer");
+          // Add paste event handler to container
+          container.addEventListener('paste', async (e) => {
+            e.preventDefault();
+            try {
+              const text = await navigator.clipboard.readText();
+              const position = editor.getPosition();
+              editor.executeEdits('paste', [{
+                range: new monaco.Range(
+                  position.lineNumber,
+                  position.column,
+                  position.lineNumber,
+                  position.column
+                ),
+                text: text,
+                forceMoveMarkers: true
+              }]);
+            } catch (err) {
+              console.error('Paste failed:', err);
+            }
+          });
+
+          // Add keyboard event listener for paste
+          container.addEventListener('keydown', async (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+              e.preventDefault();
+              try {
+                const text = await vscode.postMessage({
+                  command: 'getClipboardText'
+                });
+                const position = editor.getPosition();
+                editor.executeEdits('paste', [{
+                  range: {
+                    startLineNumber: position.lineNumber,
+                    startColumn: position.column,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column
+                  },
+                  text: text
+                }]);
+              } catch (err) {
+                console.error('Paste failed:', err);
+              }
+            }
+          });
+
           editor = monaco.editor.create(container, {
             value: "",
             language: "sql",
@@ -250,6 +295,45 @@
               verticalScrollbarSize: 10,
               horizontalScrollbarSize: 10,
             },
+            // Additional editor options for better paste handling
+            ariaLabel: "SQL Editor",
+            tabSize: 2,
+            insertSpaces: true,
+            wordWrap: 'on',
+            lineNumbers: 'on',
+            glyphMargin: true,
+            // Enable actions
+            contextmenu: true,
+            quickSuggestions: true,
+            // Keyboard shortcuts
+            multiCursorModifier: 'alt',
+            formatOnPaste: true,
+            autoClosingBrackets: 'always',
+            autoClosingQuotes: 'always',
+            // Enable clipboard and keyboard shortcuts
+            acceptSuggestionOnEnter: "on",
+            cursorBlinking: "smooth",
+            cursorSmoothCaretAnimation: true,
+            find: {
+              addExtraSpaceOnTop: false,
+              autoFindInSelection: "never",
+              seedSearchStringFromSelection: "selection"
+            },
+            // Enable clipboard features
+            contextmenu: true,
+            multiCursorModifier: 'ctrlCmd',
+            copyWithSyntaxHighlighting: true,
+            // Enable common keyboard shortcuts
+            quickSuggestions: true,
+            wordBasedSuggestions: true,
+            // Add additional editor features
+            folding: true,
+            links: true,
+            mouseWheelZoom: true,
+            parameterHints: {
+              enabled: true
+            },
+            suggestOnTriggerCharacters: true
           });
 
           // No need for setup here as the button click is handled in the UI definition
@@ -258,6 +342,21 @@
           window.addEventListener("message", (event) => {
             const message = event.data;
             const grid = $$("resultGrid");
+
+            // Handle clipboard text response
+            if (message.command === 'clipboardText') {
+              const position = editor.getPosition();
+              editor.executeEdits('paste', [{
+                range: {
+                  startLineNumber: position.lineNumber,
+                  startColumn: position.column,
+                  endLineNumber: position.lineNumber,
+                  endColumn: position.column
+                },
+                text: message.text
+              }]);
+              return;
+            }
 
             switch (message.command) {
               case "results":

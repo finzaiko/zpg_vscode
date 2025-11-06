@@ -25,6 +25,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 columnToShowIn || vscode.ViewColumn.One,
                 {
                     enableScripts: true,
+                    enableCommandUris: true,
+                    retainContextWhenHidden: true,
+                    enableFindWidget: true,
                     localResourceRoots: [
                         vscode.Uri.file(path.join(context.extensionPath, 'node_modules')),
                         vscode.Uri.file(path.join(context.extensionPath, 'src', 'webview'))
@@ -65,6 +68,13 @@ export async function activate(context: vscode.ExtensionContext) {
                 async message => {
                     try {
                         switch (message.command) {
+                            case 'getClipboardText':
+                                const clipboardText = await vscode.env.clipboard.readText();
+                                currentPanel?.webview.postMessage({
+                                    command: 'clipboardText',
+                                    text: clipboardText
+                                });
+                                break;
                             case 'execute':
                                 try {
                                     const client = new Client(message.connection);
